@@ -1,5 +1,8 @@
 """Tests for hashline core."""
 
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -259,6 +262,45 @@ DEL 5
         p = parse("[a.py#ABCD]\nBOGUS 1\nSWAP 1.=1:\n+ok\n", strict=False)
         self.assertTrue(p.warnings)
         self.assertEqual(len(p.files[0].hunks), 1)
+
+
+class TestCliEncoding(unittest.TestCase):
+    """The CLI must force UTF-8 on stdin/stdout regardless of the platform's
+    default console encoding, so non-ASCII content (emoji, em-dashes, math
+    symbols) round-trips instead of crashing on read or being double-encoded
+    when a patch is piped in. Regression for the Windows cp1252 path."""
+
+    def _run(self, args, input_bytes=None):
+        env = dict(os.environ)
+        # Simulate a non-UTF-8 console (the Windows cp1252 default). latin-1
+        # maps all 256 bytes, so without the fix UTF-8 input would be silently
+        # mis-decoded and rewritten as mojibake.
+        env["PYTHONIOENCODING"] = "latin-1"
+        return subprocess.run(
+            [sys.executable, "-m", "hashline", *args],
+            input=input_bytes,
+            capture_output=True,
+            env=env,
+        )
+
+    def test_read_non_ascii_does_not_crash(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "u.txt"
+            p.write_text("café ≥ 1 — ok\n", encoding="utf-8")
+            res = self._run(["read", str(p)])
+            self.assertEqual(res.returncode, 0, res.stderr.decode("utf-8", "replace"))
+            self.assertIn("café ≥ 1 — ok", res.stdout.decode("utf-8"))
+
+    def test_apply_via_stdin_preserves_non_ascii(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "u.txt"
+            p.write_text("old line\n", encoding="utf-8")
+            tag = compute_tag(p.read_text(encoding="utf-8"))
+            new = "résumé — 50% ≥ ✅"
+            patch = f"[{p.resolve().as_posix()}#{tag}]\nSWAP 1.=1:\n+{new}\n"
+            res = self._run(["apply"], input_bytes=patch.encode("utf-8"))
+            self.assertEqual(res.returncode, 0, res.stderr.decode("utf-8", "replace"))
+            self.assertEqual(p.read_text(encoding="utf-8"), new + "\n")
 
 
 class TestCompose(unittest.TestCase):

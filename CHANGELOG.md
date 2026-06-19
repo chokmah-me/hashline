@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-06-19
+
+### Fixed
+- **Windows / non-UTF-8 console encoding bugs in the CLI** (found while editing an
+  emoji- and symbol-heavy repo):
+  - `hashline read` crashed with `UnicodeEncodeError` when printing a file
+    containing non-cp1252 characters (e.g. `≥`, emoji).
+  - `hashline apply` reading a patch from **stdin** silently double-encoded
+    non-ASCII content (em-dashes became mojibake) because stdin was decoded with
+    the platform default instead of UTF-8.
+  - Both fixed by forcing UTF-8 on `stdin`/`stdout`/`stderr` at CLI startup
+    (`_force_utf8_io`). Added subprocess regression tests that pin the read and
+    stdin-apply paths under a simulated non-UTF-8 console.
+
 ## [0.4.0] - 2026-06-19
 
 ### Added

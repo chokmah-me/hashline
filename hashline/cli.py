@@ -23,7 +23,22 @@ from .hashline import (
 from .compose import compose_prompt, list_models
 
 
+def _force_utf8_io():
+    # Files routinely contain non-ASCII (emoji, math symbols). On Windows the
+    # default console encoding is cp1252, so printing a hashed view crashes with
+    # UnicodeEncodeError and reading a piped patch silently mangles non-ASCII
+    # (double-encoding em-dashes etc.). Reconfigure stdin/stdout/stderr to UTF-8.
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
 def main(argv=None):
+    _force_utf8_io()
     parser = argparse.ArgumentParser(prog="hashline", description="Hash-anchored LLM edit harness")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
