@@ -56,7 +56,9 @@ https://github.com/chokmah-me/hashline (see prompt.md and the prompts/ directory
 
 ## Model-Aware Example Sessions
 
-Use the base contract above + the model-specific reminders from the repo's `prompts/<model>.md`.
+Use the base contract above + the **tighter, minimal deltas** from `prompts/agent_prompts.md`.
+
+The `prompts/` directory now contains focused minimal instructions for each model. See `prompts/agent_prompts.md` for the comparison table, "Why this delta" explanations, and ready-to-use full minimal prompts.
 
 ### Grok (this TUI / current environment)
 Recommended prefix: "You are using the hashline edit harness. Always ground on the most recent read output."
@@ -99,7 +101,7 @@ hashline read src/processor.py
 ```
 
 ### DeepSeek v4
-Recommended prefix (from prompts/deepseek.md): "You are using the hashline edit harness. Ground every edit on a fresh read output. Use ONLY the line numbers and [PATH#TAG] from the most recent `hashline read` output."
+Recommended prefix (tight delta from agent_prompts.md): "Strictly use ONLY the line numbers and [PATH#TAG] shown in the most recent hashline read. Do not use any numbers from memory or previous turns."
 
 **Concrete example**
 
@@ -134,7 +136,7 @@ hashline read utils.py
 ```
 
 ### Gemini
-Recommended prefix (from prompts/gemini.md): "You must use the hashline format exactly. Reproduce no old content. Only provide new content after the + ."
+Recommended prefix (tight delta from agent_prompts.md): "CRITICAL: Never include any original/old lines in your + body. Only write the final desired content. The range (SWAP/DEL) removes the old text."
 
 **Concrete example** (Gemini tends to want extra safety reminders)
 
@@ -162,7 +164,7 @@ EOF
 Re-ground immediately.
 
 ### Kimi k2 2.7
-Recommended prefix (from prompts/kimi.md): "Use hashline anchors precisely. You can be concise."
+Recommended prefix (tight delta from agent_prompts.md): "Be concise. Use precise anchors from the current read. You are allowed to output multi-hunk patches in one go."
 
 **Concrete example** (Kimi handles multi-op patches well)
 
