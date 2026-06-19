@@ -2,54 +2,42 @@
 
 **Hash-anchored edit harness for LLM coding agents.**
 
-Stable, verifiable line-based edits using short content hashes instead of fragile exact string replace.
+Stable, verifiable line-based edits using short content hashes.
 
-Works especially well with:
-- Grok
+**Tested / works well with:**
+- Grok (xAI)
 - Claude Code
 - **DeepSeek v4**
-- **Gemini**
-- **Kimi k2 2.7** (Moonshot)
+- **Gemini (Google)**
+- **Kimi k2 2.7 (Moonshot)**
 
-## Installation
+## Install
 
 ```bash
 pip install git+https://github.com/chokmah-me/hashline.git
 ```
 
-After install you get the `hashline` command.
+Then use the `hashline` command.
 
-## Basic Usage
+## How the extension works for different models
 
-```bash
-hashline read src/foo.py
-hashline apply < my.patch
-```
+The harness itself is model-agnostic. The improvements come from:
 
-See `prompt.md` for the exact patch language the model should use.
+1. The `read` output giving the model stable anchors instead of having to copy text.
+2. Compact patch format that reduces output tokens and error surface.
 
-## Model-Specific Tips
+### Tips per model
 
-### DeepSeek v4
-DeepSeek follows structured formats well. Use explicit "Use the exact [path#TAG] format from the read output" in your system prompt.
+**DeepSeek v4**
+- Very good at structured output.
+- In your instructions: "Always use the exact [path#TAG] and numbers from the most recent hashline read."
 
-### Gemini
-Gemini can be sensitive to whitespace. Always remind it: "Do not reproduce old content. Only output + lines for the ranges."
+**Gemini**
+- Can be whitespace sensitive.
+- Strong reminder in prompt: "Body is ONLY the + lines. Do not include any old content."
 
-### Kimi k2 2.7
-Kimi is excellent at following the compact patch syntax. It benefits greatly from the token savings.
+**Kimi k2 2.7**
+- Excellent instruction following for this kind of format.
+- Benefits hugely from the token reduction.
 
-## For Claude Code Users
-Run your normal session-recall first, then use `hashline` for edits.
-
-Use the injector:
-```bash
-python -m hashline.inject_claude .
-```
-
-## Development
-```bash
-git clone https://github.com/chokmah-me/hashline
-git clone ...
-pip install -e .
-```
+See `prompt.md` for the canonical agent contract.
