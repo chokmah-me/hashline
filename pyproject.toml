@@ -4,12 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hashline"
-version = "0.2.0"
+version = "0.3.0"
 description = "Hash-anchored edit harness for LLM coding agents. Stable line edits using content hashes. Works great with Grok, Claude, DeepSeek, Gemini, Kimi and others."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
 authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
+keywords = ["llm", "ai", "edit", "harness", "prompt-engineering", "coding-agent", "deepseek", "gemini", "kimi"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Code Generators",
+]
 
 [project.optional-dependencies]
 # 'test' is used by both the regular test suite and the end-to-end harness_demo
