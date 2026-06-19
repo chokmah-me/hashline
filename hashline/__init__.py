@@ -1,6 +1,9 @@
-"""Hashline edit harness — line-anchored, hash-verified patches for LLM agents."""
+"""Hashline edit harness — line-anchored, hash-verified patches for LLM agents.
 
-from .hashline import (
+See README.md for usage and prompt.md for the agent contract.
+"""
+
+from .hashline import (  # noqa: F401
     compute_tag,
     normalize_text,
     SnapshotStore,

@@ -5,14 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hashline"
 version = "0.1.0"
-description = "Hash-anchored edit harness for LLM coding agents (Grok, Claude Code, etc.)"
+description = "Hash-anchored edit harness for LLM coding agents. Stable line edits using content hashes. Works great with Grok, Claude, DeepSeek, Gemini, Kimi and others."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
-authors = [
-  {name = "Extracted for standalone use"}
-]
-dependencies = []
+authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
 
 [project.scripts]
 hashline = "hashline.cli:main"
