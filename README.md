@@ -1,39 +1,55 @@
 # hashline
 
-Reliable hash-anchored line edit harness for LLM coding agents.
+**Hash-anchored edit harness for LLM coding agents.**
 
-Based on the technique described in https://blog.can.ac/2026/02/12/the-harness-problem/
+Stable, verifiable line-based edits using short content hashes instead of fragile exact string replace.
 
-## Install
+Works especially well with:
+- Grok
+- Claude Code
+- **DeepSeek v4**
+- **Gemini**
+- **Kimi k2 2.7** (Moonshot)
+
+## Installation
 
 ```bash
 pip install git+https://github.com/chokmah-me/hashline.git
 ```
 
-## Quick start
+After install you get the `hashline` command.
+
+## Basic Usage
 
 ```bash
-# Ground an edit
-hashline read src/module.py
-
-# Apply a compact patch using the anchors the model saw
-hashline apply << 'EOF'
-[src/module.py#ABCD]
-SWAP 12.=14:
-+    better implementation
-EOF
+hashline read src/foo.py
+hashline apply < my.patch
 ```
 
-Full rules for agents are in `prompt.md`.
+See `prompt.md` for the exact patch language the model should use.
 
-## Claude Code
+## Model-Specific Tips
 
-Run your `session-recall-cc` commands first, then use `hashline` for edits.
+### DeepSeek v4
+DeepSeek follows structured formats well. Use explicit "Use the exact [path#TAG] format from the read output" in your system prompt.
 
-You can use the built-in injector:
+### Gemini
+Gemini can be sensitive to whitespace. Always remind it: "Do not reproduce old content. Only output + lines for the ranges."
 
+### Kimi k2 2.7
+Kimi is excellent at following the compact patch syntax. It benefits greatly from the token savings.
+
+## For Claude Code Users
+Run your normal session-recall first, then use `hashline` for edits.
+
+Use the injector:
 ```bash
-python -m hashline.inject_claude --help
-# or after install
-hashline inject-claude .
+python -m hashline.inject_claude .
+```
+
+## Development
+```bash
+git clone https://github.com/chokmah-me/hashline
+git clone ...
+pip install -e .
 ```
