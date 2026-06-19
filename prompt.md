@@ -1,19 +1,23 @@
-## Hashline Patch Format (works with DeepSeek v4, Gemini, Kimi k2, Grok, Claude)
+## Hashline Patch Language
 
-Every file section starts with [PATH#TAG].
+See the model-specific variants in the `prompts/` directory.
+
+Base rules (use this + the appropriate model variant):
+
+[PATH#TAG]
 
 SWAP N.=M:
-+ replacement lines
++new content here
 
 DEL N
 
 INS.POST N:
-+ inserted line
++line to insert
 
 Rules:
-- Use numbers exactly as returned by the most recent `hashline read`.
-- Never output old content in the body — the range handles deletion.
-- Re-ground (re-read) after every apply.
-- Tight ranges only.
+- Numbers come from the latest `hashline read` (or equivalent)
+- Body is ONLY `+` lines
+- Re-ground after every edit
+- Stale tag? Re-read immediately
 
-This format dramatically reduces failures on DeepSeek v4, Gemini, and Kimi k2 2.7 compared to raw str_replace.
+For best results with a specific model, prepend the content from `prompts/<model>.md`.
