@@ -37,6 +37,8 @@ See the `prompts/` directory for ready-to-use variants:
 - `prompts/claude.md`
 - `prompts/grok.md`
 
+**New:** See `prompts/agent_prompts.md` for a compact usage matrix showing the *minimal* system-prompt deltas for DeepSeek v4, Gemini, and Kimi k2, plus a recommendation on separate files vs. templated prompts.
+
 Copy the relevant one into your system prompt or agent instructions.
 
 ## Grok Skill Example Usage
