@@ -108,7 +108,9 @@ INS.TAIL:
             patcher.apply(parse(patch))
             content = p.read_text()
             self.assertTrue(content.startswith("# header\n"))
-            self.assertTrue(content.endswith("trailer\n") or content.endswith("trailer"))
+            self.assertTrue(
+                content.endswith("trailer\n") or content.endswith("trailer")
+            )
 
     def test_parse_multi(self):
         txt = """[a.py#ABCD]
@@ -186,12 +188,7 @@ DEL 5
             p = td / "t.py"
             p.write_text("a\nb\nc\nd\n", encoding="utf-8")
             tag = _tag_of(read_hashed(p, store=store))
-            patch = (
-                f"[{p.name}#{tag}]\n"
-                "DEL 4\n"
-                "SWAP 1.=1:\n+A\n"
-                "INS.POST 2:\n+after-b\n"
-            )
+            patch = f"[{p.name}#{tag}]\nDEL 4\nSWAP 1.=1:\n+A\nINS.POST 2:\n+after-b\n"
             Patcher(store=store, fs_root=td).apply(parse(patch))
             self.assertEqual(p.read_text().splitlines(), ["A", "b", "after-b", "c"])
 

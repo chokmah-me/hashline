@@ -39,7 +39,9 @@ def _force_utf8_io():
 
 def main(argv=None):
     _force_utf8_io()
-    parser = argparse.ArgumentParser(prog="hashline", description="Hash-anchored LLM edit harness")
+    parser = argparse.ArgumentParser(
+        prog="hashline", description="Hash-anchored LLM edit harness"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_read = sub.add_parser("read", help="Print hashed view with [path#TAG]")
@@ -61,8 +63,12 @@ def main(argv=None):
     p_tag.add_argument("path")
     p_tag.set_defaults(func=cmd_tag)
 
-    p_compose = sub.add_parser("compose", help="Compose system prompt from base + model delta")
-    p_compose.add_argument("--model", required=True, choices=list_models(), help="Target model")
+    p_compose = sub.add_parser(
+        "compose", help="Compose system prompt from base + model delta"
+    )
+    p_compose.add_argument(
+        "--model", required=True, choices=list_models(), help="Target model"
+    )
     p_compose.set_defaults(func=cmd_compose)
 
     args = parser.parse_args(argv)
@@ -86,7 +92,9 @@ def cmd_apply(args):
 
     store = InMemorySnapshotStore()
     try:
-        res = apply_patch(patch_text, store=store, dry_run=args.dry_run, strict=args.strict)
+        res = apply_patch(
+            patch_text, store=store, dry_run=args.dry_run, strict=args.strict
+        )
     except ValueError as exc:
         print(exc, file=sys.stderr)
         sys.exit(1)

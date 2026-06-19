@@ -1,0 +1,130 @@
+Metadata-Version: 2.4
+Name: hashline
+Version: 0.4.1
+Summary: Hash-anchored edit harness for LLM coding agents. Stable line edits using content hashes. Works great with Grok, Claude, DeepSeek, Gemini, Kimi and others.
+Author: Based on work by Can Bölük, extracted and extended
+License: MIT
+Project-URL: Homepage, https://github.com/chokmah-me/hashline
+Project-URL: Repository, https://github.com/chokmah-me/hashline
+Keywords: llm,ai,edit,harness,prompt-engineering,coding-agent,deepseek,gemini,kimi
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: Code Generators
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+
+# hashline
+
+**Hash-anchored edit harness for LLM coding agents.**
+
+Stable, verifiable line-based edits using short content hashes instead of fragile exact string replace.
+
+> **New here? Read [QUICKSTART.md](QUICKSTART.md)** — what hashline is, how the
+> read → patch → apply loop works, and copy-paste setup for Claude, Grok,
+> DeepSeek, Gemini, and Kimi.
+
+**Supported / well-tested models:**
+- Grok
+- Claude Code
+- DeepSeek v4
+- Gemini
+- Kimi k2 2.7
+
+## Installation
+
+```bash
+pip install git+https://github.com/chokmah-me/hashline.git
+```
+
+## Quick Usage
+
+```bash
+hashline read path/to/file.py
+hashline apply < my.patch
+
+# Get a ready-to-use system prompt tailored to a model
+hashline compose --model gemini
+```
+
+## Compose Prompts for Different Models
+
+```bash
+# CLI (after install)
+hashline compose --model kimi
+
+# Programmatic
+python -c "from hashline import compose_prompt; print(compose_prompt('deepseek'))"
+
+# From source
+python scripts/compose_prompt.py --model gemini
+```
+
+See `prompts/agent_prompts.md` for the full usage matrix with minimal deltas.
+
+## Model-Specific Prompt Variants
+
+Different models follow the hashline format best with slightly different reminders.
+
+See the `prompts/` directory for ready-to-use variants:
+
+- `prompts/base.md`
+- `prompts/deepseek.md`
+- `prompts/gemini.md`
+- `prompts/kimi.md`
+- `prompts/claude.md`
+- `prompts/grok.md`
+
+## Grok Skill Example Usage
+
+The full ready-to-use Grok skill (with model-aware Example Sessions) is available at:
+
+- Local: `~/.grok/skills/hashline/SKILL.md`
+- In this repo: `docs/SKILL.md`
+
+It now references the tighter deltas in `agent_prompts.md`.
+
+## GitHub Actions / CI
+
+Separate jobs on every push/PR:
+- `test`: pytest across Python 3.8-3.13 + CLI check
+- `lint`: ruff check + format
+- `typecheck`: mypy
+- `demo`: end-to-end `read` → (model-style patch) → `apply` for base case + Gemini (see `tests/harness_demo.py`)
+
+See `.github/workflows/ci.yml`.
+
+## For Claude Code Users
+
+```bash
+python -m hashline.inject_claude .
+```
+
+## Development
+
+```bash
+git clone https://github.com/chokmah-me/hashline
+pip install -e ".[dev]"
+# lint
+ruff check .
+ruff format --check .
+# typecheck
+mypy hashline
+# test + demo
+pytest
+python tests/harness_demo.py --models base gemini
+# compose prompt
+hashline compose --model gemini
+```

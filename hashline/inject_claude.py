@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-SNIPPET = '''<!-- hashline:v1 START -->
+SNIPPET = """<!-- hashline:v1 START -->
 ## Hashline edit harness (use for all file modifications)
 
 **After running `session-recall-cc`, use the hashline harness for edits.**
@@ -30,11 +30,12 @@ HLP
 
 See the hashline package for full rules.
 <!-- hashline:v1 END -->
-'''
+"""
 
-RECALL_CC_END = re.compile(r'<!--\s*session-recall-cc:v1\s+END\s*-->', re.IGNORECASE)
-RECALL_V1_END = re.compile(r'<!--\s*/session-recall:v1\s*-->', re.IGNORECASE)
-HASHLINE_MARKER = re.compile(r'<!--\s*hashline:v1\s+START', re.IGNORECASE)
+RECALL_CC_END = re.compile(r"<!--\s*session-recall-cc:v1\s+END\s*-->", re.IGNORECASE)
+RECALL_V1_END = re.compile(r"<!--\s*/session-recall:v1\s*-->", re.IGNORECASE)
+HASHLINE_MARKER = re.compile(r"<!--\s*hashline:v1\s+START", re.IGNORECASE)
+
 
 def find_recall_end(text: str) -> Optional[int]:
     m = RECALL_CC_END.search(text)
@@ -44,6 +45,7 @@ def find_recall_end(text: str) -> Optional[int]:
     if m:
         return m.end()
     return None
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -71,6 +73,7 @@ def main():
                 bak.write_text(text, encoding="utf-8")
             p.write_text(new_text, encoding="utf-8")
             print(f"UPDATED: {p}")
+
 
 if __name__ == "__main__":
     main()

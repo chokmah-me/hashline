@@ -18,6 +18,7 @@ except ImportError:
     # Fallback for running directly from source tree
     import sys
     from pathlib import Path
+
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from hashline.compose import compose_prompt, list_models  # type: ignore
 

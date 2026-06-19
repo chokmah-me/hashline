@@ -22,6 +22,7 @@ def normalize_text(text: str) -> Tuple[str, str]:
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
     return normalized, newline
 
+
 def denormalize_text(normalized: str, newline: str) -> str:
     if newline == "\n":
         return normalized
@@ -30,6 +31,7 @@ def denormalize_text(normalized: str, newline: str) -> str:
     if newline == "\r":
         return normalized.replace("\n", "\r")
     return normalized
+
 
 def compute_tag(text: str) -> str:
     norm, _ = normalize_text(text)
@@ -51,6 +53,7 @@ def write_raw(path: Path, text: str) -> None:
 class SnapshotStore:
     def record(self, path: str, content: str) -> str:
         raise NotImplementedError
+
     def get(self, path: str, tag: str) -> Optional[str]:
         raise NotImplementedError
 
@@ -70,7 +73,11 @@ class InMemorySnapshotStore(SnapshotStore):
 
     def get(self, path: str, tag: str) -> Optional[str]:
         key = str(Path(path).resolve())
-        return self._store.get((key, tag)) or self._store.get((Path(path).name, tag)) or self._store.get((path, tag))
+        return (
+            self._store.get((key, tag))
+            or self._store.get((Path(path).name, tag))
+            or self._store.get((path, tag))
+        )
 
 
 _global_store = InMemorySnapshotStore()
@@ -111,8 +118,8 @@ class Patch:
     warnings: List[str] = field(default_factory=list)
 
 
-_HUNK_RE = re.compile(r'^(SWAP|DEL|INS\.(?:PRE|POST|HEAD|TAIL))\s*(.*)$')
-_RANGE_RE = re.compile(r'^(\d+)(?:\.=(\d+))?\s*:?$')
+_HUNK_RE = re.compile(r"^(SWAP|DEL|INS\.(?:PRE|POST|HEAD|TAIL))\s*(.*)$")
+_RANGE_RE = re.compile(r"^(\d+)(?:\.=(\d+))?\s*:?$")
 
 
 def _parse_lid(s: str) -> int:
@@ -170,7 +177,9 @@ def parse(patch_text: str, strict: bool = True) -> Patch:
                         current_hunk = Hunk(op, lid, lid)
                     current_file.hunks.append(current_hunk)
             except ValueError:
-                patch.warnings.append(f"line {lineno}: bad range in {op!r}: {line.strip()!r}")
+                patch.warnings.append(
+                    f"line {lineno}: bad range in {op!r}: {line.strip()!r}"
+                )
             continue
 
         stripped = line.lstrip()
@@ -178,7 +187,9 @@ def parse(patch_text: str, strict: bool = True) -> Patch:
             if current_hunk is not None:
                 current_hunk.body.append(stripped[1:])
             else:
-                patch.warnings.append(f"line {lineno}: '+' body with no active hunk: {line.strip()!r}")
+                patch.warnings.append(
+                    f"line {lineno}: '+' body with no active hunk: {line.strip()!r}"
+                )
             continue
 
         # An op-looking line with no current file, or anything unrecognized.
@@ -198,7 +209,9 @@ class ApplyResult:
 
 
 class Patcher:
-    def __init__(self, store: Optional[SnapshotStore] = None, fs_root: Optional[Path] = None):
+    def __init__(
+        self, store: Optional[SnapshotStore] = None, fs_root: Optional[Path] = None
+    ):
         self.store = store or _global_store
         self.fs_root = fs_root or Path.cwd()
 
@@ -214,18 +227,29 @@ class Patcher:
             return bare
         return candidate
 
-    def apply(self, patch: Patch, dry_run: bool = False, backup: bool = True) -> ApplyResult:
+    def apply(
+        self, patch: Patch, dry_run: bool = False, backup: bool = True
+    ) -> ApplyResult:
         result = ApplyResult(warnings=list(patch.warnings))
         for fp in patch.files:
             path = self._resolve_path(fp.path)
             if not path.exists():
-                result.sections.append({"path": str(path), "op": "error", "error": "missing"})
+                result.sections.append(
+                    {"path": str(path), "op": "error", "error": "missing"}
+                )
                 continue
 
             current_raw = read_raw(path)
             current_tag = compute_tag(current_raw)
             if current_tag != fp.tag:
-                result.sections.append({"path": str(path), "op": "stale", "expected": fp.tag, "actual": current_tag})
+                result.sections.append(
+                    {
+                        "path": str(path),
+                        "op": "stale",
+                        "expected": fp.tag,
+                        "actual": current_tag,
+                    }
+                )
                 continue
 
             snap = self.store.get(str(path), fp.tag) or current_raw
@@ -240,7 +264,9 @@ class Patcher:
                 elif h.op == "INS.HEAD":
                     ops.append(("ins_head", 1, 0, list(h.body)))
                 elif h.op == "INS.TAIL":
-                    ops.append(("ins_tail", len(orig_lines) + 1, len(orig_lines), list(h.body)))
+                    ops.append(
+                        ("ins_tail", len(orig_lines) + 1, len(orig_lines), list(h.body))
+                    )
                 elif h.op == "INS.PRE" and h.start:
                     ops.append(("ins_pre", h.start, h.start, list(h.body)))
                 elif h.op == "INS.POST" and h.start:
@@ -251,22 +277,24 @@ class Patcher:
             working = list(orig_lines)
             for kind, a, b, body in ops:
                 if kind == "del":
-                    working[a-1:b] = []
+                    working[a - 1 : b] = []
                 elif kind == "swap":
-                    working[a-1:b] = body
+                    working[a - 1 : b] = body
                 elif kind == "ins_head":
                     working = body + working
                 elif kind == "ins_tail":
                     working = working + body
                 elif kind == "ins_pre":
-                    working = working[:a-1] + body + working[a-1:]
+                    working = working[: a - 1] + body + working[a - 1 :]
                 elif kind == "ins_post":
                     working = working[:a] + body + working[a:]
 
             new_norm = "\n".join(working)
             orig_norm, orig_newline = normalize_text(current_raw)
             had_trailing = orig_norm.endswith("\n")
-            final = denormalize_text(new_norm + ("\n" if had_trailing else ""), orig_newline)
+            final = denormalize_text(
+                new_norm + ("\n" if had_trailing else ""), orig_newline
+            )
 
             if final == current_raw:
                 result.sections.append({"path": str(path), "op": "noop", "tag": fp.tag})
@@ -283,13 +311,25 @@ class Patcher:
             new_tag = compute_tag(final)
             self.store.record(str(path), final)
 
-            result.sections.append({"path": str(path), "op": "update", "old_tag": fp.tag, "new_tag": new_tag})
+            result.sections.append(
+                {
+                    "path": str(path),
+                    "op": "update",
+                    "old_tag": fp.tag,
+                    "new_tag": new_tag,
+                }
+            )
             result.new_tags[str(path)] = new_tag
 
         return result
 
 
-def apply_patch(patch_text: str, store: Optional[SnapshotStore] = None, dry_run: bool = False, strict: bool = True) -> ApplyResult:
+def apply_patch(
+    patch_text: str,
+    store: Optional[SnapshotStore] = None,
+    dry_run: bool = False,
+    strict: bool = True,
+) -> ApplyResult:
     p = parse(patch_text, strict=strict)
     patcher = Patcher(store=store)
     return patcher.apply(p, dry_run=dry_run)

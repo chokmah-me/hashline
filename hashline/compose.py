@@ -7,7 +7,7 @@ Usage:
 
 from __future__ import annotations
 
-BASE = '''You are using the hashline edit harness.
+BASE = """You are using the hashline edit harness.
 
 When editing files:
 - Always start by calling the read tool (or `hashline read`) to get the current [PATH#TAG] view.
@@ -16,7 +16,7 @@ When editing files:
 - The patch body must contain ONLY new content (lines starting with +).
 - Never reproduce old content from the file in the patch body.
 - Re-read the file after every successful apply before making further changes.
-'''
+"""
 
 # Per-model reminders appended to BASE. "base" intentionally has no delta and
 # returns BASE alone. Keep these in sync with the prompts/*.md variants.
@@ -34,7 +34,9 @@ def compose_prompt(model: str) -> str:
     """Return a ready-to-use system prompt for the given model."""
     model = model.lower().strip()
     if model not in DELTAS:
-        raise ValueError(f"Unsupported model '{model}'. Choose from: {list(DELTAS.keys())}")
+        raise ValueError(
+            f"Unsupported model '{model}'. Choose from: {list(DELTAS.keys())}"
+        )
     delta = DELTAS[model]
     return BASE.strip() + ("\n\n" + delta if delta else "")
 

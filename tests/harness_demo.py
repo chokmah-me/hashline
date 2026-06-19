@@ -62,41 +62,42 @@ def run_scenario(name: str, source: str, patch_text: str) -> bool:
 
         # Basic success criteria
         success = (
-            len(res.sections) > 0 and
-            "error" not in str(res.sections[0].get("op", "")) and
-            "stale" not in str(res.sections[0].get("op", ""))
+            len(res.sections) > 0
+            and "error" not in str(res.sections[0].get("op", ""))
+            and "stale" not in str(res.sections[0].get("op", ""))
         )
         print(f"\nSCENARIO {name}: {'PASS' if success else 'FAIL'}")
         return success
 
 
-BASE_SOURCE = '''def process(items):
+BASE_SOURCE = """def process(items):
     out = []
     for x in items:
         if x > 0:
             out.append(x * 2)
     return out
-'''
+"""
 
-BASE_PATCH = '''[sample.py#PLACEHOLDER]
+BASE_PATCH = """[sample.py#PLACEHOLDER]
 SWAP 5.=5:
 +            out.append(x * 3)
-'''
+"""
 
-GEMINI_SOURCE = '''def format_name(first, last):
+GEMINI_SOURCE = """def format_name(first, last):
     return first + " " + last
-'''
+"""
 
-GEMINI_PATCH = '''[sample.py#PLACEHOLDER]
+GEMINI_PATCH = """[sample.py#PLACEHOLDER]
 SWAP 2.=2:
 +    return f"{first} {last}"
-'''
+"""
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--models", nargs="+", default=["base", "gemini"],
-                        help="Which scenarios to run")
+    parser.add_argument(
+        "--models", nargs="+", default=["base", "gemini"], help="Which scenarios to run"
+    )
     args = parser.parse_args()
 
     all_ok = True
