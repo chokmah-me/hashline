@@ -33,3 +33,37 @@ jobs:
     - name: Check CLI entry point
       run: |
         hashline --help || python -m hashline --help
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install linter
+      run: |
+        pip install --upgrade pip
+        pip install ruff
+    - name: Run ruff (lint + format check)
+      run: |
+        ruff check .
+        ruff format --check .
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install type checker and package
+      run: |
+        pip install --upgrade pip
+        pip install mypy
+        pip install -e .
+    - name: Run mypy
+      run: |
+        mypy hashline --ignore-missing-imports --no-error-summary || true
