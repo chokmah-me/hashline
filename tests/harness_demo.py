@@ -16,7 +16,6 @@ from pathlib import Path
 
 from hashline.hashline import (
     read_hashed,
-    parse,
     apply_patch,
     InMemorySnapshotStore,
 )
@@ -55,8 +54,8 @@ def run_scenario(name: str, source: str, patch_text: str) -> bool:
             print("APPLY FAILED:", e)
             return False
 
-        # 4. Re-ground + verify
-        new_view = read_hashed(p)
+        # 4. Re-ground + verify (re-read to pick up the new tag, as an agent would)
+        read_hashed(p)
         new_content = p.read_text(encoding="utf-8")
         print("\nRESULTING FILE:")
         print(new_content)

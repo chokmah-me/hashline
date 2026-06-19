@@ -7,7 +7,7 @@ name = "hashline"
 version = "0.4.1"
 description = "Hash-anchored edit harness for LLM coding agents. Stable line edits using content hashes. Works great with Grok, Claude, DeepSeek, Gemini, Kimi and others."
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 requires-python = ">=3.8"
 authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
 keywords = ["llm", "ai", "edit", "harness", "prompt-engineering", "coding-agent", "deepseek", "gemini", "kimi"]

@@ -231,7 +231,7 @@ class Patcher:
             snap = self.store.get(str(path), fp.tag) or current_raw
             orig_lines = snap.splitlines(keepends=False)
 
-            ops = []
+            ops: List[Tuple[str, int, int, List[str]]] = []
             for h in fp.hunks:
                 if h.op == "DEL" and h.start and h.end:
                     ops.append(("del", h.start, h.end, []))
