@@ -12,6 +12,8 @@ license = {text = "MIT"}
 authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
 
 [project.optional-dependencies]
+# 'test' is used by both the regular test suite and the end-to-end harness_demo
+# (see tests/harness_demo.py and the 'demo' CI job)
 test = ["pytest"]
 dev = ["ruff", "mypy"]
 
