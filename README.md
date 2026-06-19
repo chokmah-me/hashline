@@ -1,37 +1,39 @@
 # hashline
 
-Reliable, hash-anchored edit harness for LLM agents.
+Reliable hash-anchored line edit harness for LLM coding agents.
 
-Implements the technique from https://blog.can.ac/2026/02/12/the-harness-problem/
+Based on the technique described in https://blog.can.ac/2026/02/12/the-harness-problem/
 
 ## Install
 
 ```bash
-pip install hashline
-# or from source
-git clone https://github.com/chokmah-me/hashline
-cd hashline
-pip install -e .
+pip install git+https://github.com/chokmah-me/hashline.git
 ```
 
-## Usage
+## Quick start
 
 ```bash
-# Get a stable view with anchors
-hashline read path/to/file.py
+# Ground an edit
+hashline read src/module.py
 
-# Apply an edit using the anchors (compact)
-hashline apply << 'H'
-[path#TAG]
-SWAP 5.=5:
-+    improved line
-H
+# Apply a compact patch using the anchors the model saw
+hashline apply << 'EOF'
+[src/module.py#ABCD]
+SWAP 12.=14:
++    better implementation
+EOF
 ```
 
-See `prompt.md` for the full rules the agent should follow.
+Full rules for agents are in `prompt.md`.
 
-## For Claude Code
+## Claude Code
 
-Run `session-recall-cc` first, then use the `hashline` commands.
+Run your `session-recall-cc` commands first, then use `hashline` for edits.
 
-The included `hashline inject-claude` (or the script) can update your CLAUDE.md files.
+You can use the built-in injector:
+
+```bash
+python -m hashline.inject_claude --help
+# or after install
+hashline inject-claude .
+```

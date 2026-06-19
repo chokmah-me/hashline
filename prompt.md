@@ -1,0 +1,1 @@
+(Full agent contract from original prompt.md will be copied in follow-up commit)
