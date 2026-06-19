@@ -9,10 +9,12 @@ It looks for session-recall-cc or session-recall END markers and inserts
 instructions right after them. Idempotent, creates .bak.
 """
 
+from __future__ import annotations
+
 import argparse
 import re
-import sys
 from pathlib import Path
+from typing import Optional
 
 SNIPPET = '''<!-- hashline:v1 START -->
 ## Hashline edit harness (use for all file modifications)

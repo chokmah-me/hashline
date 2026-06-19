@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-19
+
+### Added
+- `QUICKSTART.md` — end-to-end guide explaining the purpose of hashline, how the
+  read → patch → apply → re-read loop works, and copy-paste setup for Claude,
+  Grok, DeepSeek, Gemini, and Kimi
+- `parse(..., strict=True)` / `apply_patch(..., strict=True)` validation: malformed
+  patch lines (unknown ops, orphan `+` bodies, bad ranges) are collected on
+  `Patch.warnings` and `ApplyResult.warnings`; strict mode (the new default)
+  raises `ValueError` instead of silently dropping them
+- `hashline apply --no-strict` flag to apply valid hunks and warn on malformed
+  lines instead of rejecting the whole patch
+- `read_raw` / `write_raw` helpers exported from the package
+- Python 3.13 classifier; expanded test suite (newline round-trips, tag
+  round-trips, multi-op ordering, edge inserts/deletes, compose coverage)
+
+### Changed
+- **Default behavior change:** `parse`/`apply_patch` now reject malformed patches
+  by default (`strict=True`). Pass `strict=False` for the previous lenient
+  behavior.
+- `hashline apply` now prints parse warnings and `noop` sections and exits
+  non-zero on `stale`/`error` sections, so scripted callers can detect failures
+- No-op patches (final content identical to current) are skipped instead of
+  rewriting the file and creating a `.hashlinebak`
+
+### Fixed
+- Cross-platform newline corruption: file I/O now uses `newline=""` so the
+  normalize/denormalize logic controls on-disk line endings (previously Windows
+  silently rewrote LF → CRLF on every edit)
+- Trailing-newline preservation for CR-only files
+- `compose.py` crashed on import under Python 3.8 (`list[str]` annotation without
+  `from __future__ import annotations`)
+- `inject_claude.py` crashed because `Optional` was used without being imported
+- `.gitignore` now excludes `*.hashlinebak` backups
+
 ## [0.2.0] - 2026-06-19
 
 ### Added

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hashline"
-version = "0.3.0"
+version = "0.4.0"
 description = "Hash-anchored edit harness for LLM coding agents. Stable line edits using content hashes. Works great with Grok, Claude, DeepSeek, Gemini, Kimi and others."
 readme = "README.md"
 license = "MIT"
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Code Generators",
 ]

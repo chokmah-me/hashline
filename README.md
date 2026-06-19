@@ -4,6 +4,10 @@
 
 Stable, verifiable line-based edits using short content hashes instead of fragile exact string replace.
 
+> **New here? Read [QUICKSTART.md](QUICKSTART.md)** — what hashline is, how the
+> read → patch → apply loop works, and copy-paste setup for Claude, Grok,
+> DeepSeek, Gemini, and Kimi.
+
 **Supported / well-tested models:**
 - Grok
 - Claude Code

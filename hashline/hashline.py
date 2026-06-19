@@ -36,6 +36,18 @@ def compute_tag(text: str) -> str:
     return hashlib.sha256(norm.encode("utf-8")).hexdigest()[:4].upper()
 
 
+def read_raw(path: Path) -> str:
+    # newline="" disables platform newline translation so denormalize_text
+    # controls the on-disk line endings (otherwise Windows rewrites LF -> CRLF).
+    with open(path, "r", encoding="utf-8", errors="replace", newline="") as f:
+        return f.read()
+
+
+def write_raw(path: Path, text: str) -> None:
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+
+
 class SnapshotStore:
     def record(self, path: str, content: str) -> str:
         raise NotImplementedError
@@ -68,7 +80,7 @@ def read_hashed(path: str | Path, store: Optional[SnapshotStore] = None) -> str:
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(str(p))
-    raw = p.read_text(encoding="utf-8", errors="replace")
+    raw = read_raw(p)
     tag = (store or _global_store).record(str(p), raw)
     norm, _ = normalize_text(raw)
     lines = norm.splitlines(keepends=False)
@@ -96,6 +108,7 @@ class FilePatch:
 @dataclass
 class Patch:
     files: List[FilePatch] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
 
 
 _HUNK_RE = re.compile(r'^(SWAP|DEL|INS\.(?:PRE|POST|HEAD|TAIL))\s*(.*)$')
@@ -117,13 +130,13 @@ def _parse_range(s: str) -> Tuple[int, int]:
     return min(a, b), max(a, b)
 
 
-def parse(patch_text: str) -> Patch:
+def parse(patch_text: str, strict: bool = True) -> Patch:
     lines = patch_text.splitlines()
     patch = Patch()
     current_file = None
     current_hunk = None
 
-    for line in lines:
+    for lineno, line in enumerate(lines, 1):
         line = line.rstrip("\r")
         if not line.strip():
             continue
@@ -139,31 +152,40 @@ def parse(patch_text: str) -> Patch:
         if m and current_file is not None:
             op = m.group(1)
             rest = m.group(2).strip()
-            if op == "DEL":
-                a, b = _parse_range(rest)
-                current_hunk = Hunk("DEL", a, b)
-                current_file.hunks.append(current_hunk)
-                current_hunk = None
-            elif op.startswith("SWAP"):
-                a, b = _parse_range(rest.rstrip(":"))
-                current_hunk = Hunk(op, a, b)
-                current_file.hunks.append(current_hunk)
-            elif op.startswith("INS"):
-                if "HEAD" in op or "TAIL" in op:
-                    current_hunk = Hunk(op)
-                else:
-                    lid = _parse_lid(rest.rstrip(":"))
-                    current_hunk = Hunk(op, lid, lid)
-                current_file.hunks.append(current_hunk)
+            try:
+                if op == "DEL":
+                    a, b = _parse_range(rest)
+                    current_hunk = Hunk("DEL", a, b)
+                    current_file.hunks.append(current_hunk)
+                    current_hunk = None
+                elif op.startswith("SWAP"):
+                    a, b = _parse_range(rest.rstrip(":"))
+                    current_hunk = Hunk(op, a, b)
+                    current_file.hunks.append(current_hunk)
+                elif op.startswith("INS"):
+                    if "HEAD" in op or "TAIL" in op:
+                        current_hunk = Hunk(op)
+                    else:
+                        lid = _parse_lid(rest.rstrip(":"))
+                        current_hunk = Hunk(op, lid, lid)
+                    current_file.hunks.append(current_hunk)
+            except ValueError:
+                patch.warnings.append(f"line {lineno}: bad range in {op!r}: {line.strip()!r}")
             continue
 
         stripped = line.lstrip()
-        if stripped.startswith("+") and current_hunk is not None:
-            current_hunk.body.append(stripped[1:])
+        if stripped.startswith("+"):
+            if current_hunk is not None:
+                current_hunk.body.append(stripped[1:])
+            else:
+                patch.warnings.append(f"line {lineno}: '+' body with no active hunk: {line.strip()!r}")
             continue
-        if stripped == "+" and current_hunk is not None:
-            current_hunk.body.append("")
-            continue
+
+        # An op-looking line with no current file, or anything unrecognized.
+        patch.warnings.append(f"line {lineno}: unrecognized: {line.strip()!r}")
+
+    if strict and patch.warnings:
+        raise ValueError("malformed patch:\n  " + "\n  ".join(patch.warnings))
 
     return patch
 
@@ -172,6 +194,7 @@ def parse(patch_text: str) -> Patch:
 class ApplyResult:
     sections: List[Dict] = field(default_factory=list)
     new_tags: Dict[str, str] = field(default_factory=dict)
+    warnings: List[str] = field(default_factory=list)
 
 
 class Patcher:
@@ -192,14 +215,14 @@ class Patcher:
         return candidate
 
     def apply(self, patch: Patch, dry_run: bool = False, backup: bool = True) -> ApplyResult:
-        result = ApplyResult()
+        result = ApplyResult(warnings=list(patch.warnings))
         for fp in patch.files:
             path = self._resolve_path(fp.path)
             if not path.exists():
                 result.sections.append({"path": str(path), "op": "error", "error": "missing"})
                 continue
 
-            current_raw = path.read_text(encoding="utf-8", errors="replace")
+            current_raw = read_raw(path)
             current_tag = compute_tag(current_raw)
             if current_tag != fp.tag:
                 result.sections.append({"path": str(path), "op": "stale", "expected": fp.tag, "actual": current_tag})
@@ -241,15 +264,21 @@ class Patcher:
                     working = working[:a] + body + working[a:]
 
             new_norm = "\n".join(working)
-            _, orig_newline = normalize_text(current_raw)
-            final = denormalize_text(new_norm + ("\n" if current_raw.endswith("\n") else ""), orig_newline)
+            orig_norm, orig_newline = normalize_text(current_raw)
+            had_trailing = orig_norm.endswith("\n")
+            final = denormalize_text(new_norm + ("\n" if had_trailing else ""), orig_newline)
+
+            if final == current_raw:
+                result.sections.append({"path": str(path), "op": "noop", "tag": fp.tag})
+                result.new_tags[str(path)] = fp.tag
+                continue
 
             if not dry_run:
                 if backup:
                     bak = path.with_suffix(path.suffix + ".hashlinebak")
                     if not bak.exists():
                         shutil.copy2(path, bak)
-                path.write_text(final, encoding="utf-8")
+                write_raw(path, final)
 
             new_tag = compute_tag(final)
             self.store.record(str(path), final)
@@ -260,7 +289,7 @@ class Patcher:
         return result
 
 
-def apply_patch(patch_text: str, store: Optional[SnapshotStore] = None, dry_run: bool = False) -> ApplyResult:
-    p = parse(patch_text)
+def apply_patch(patch_text: str, store: Optional[SnapshotStore] = None, dry_run: bool = False, strict: bool = True) -> ApplyResult:
+    p = parse(patch_text, strict=strict)
     patcher = Patcher(store=store)
     return patcher.apply(p, dry_run=dry_run)

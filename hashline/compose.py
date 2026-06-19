@@ -5,6 +5,8 @@ Usage:
     prompt = compose_prompt("gemini")
 """
 
+from __future__ import annotations
+
 BASE = '''You are using the hashline edit harness.
 
 When editing files:

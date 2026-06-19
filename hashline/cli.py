@@ -17,6 +17,7 @@ from .hashline import (
     apply_patch,
     compute_tag,
     read_hashed,
+    read_raw,
     InMemorySnapshotStore,
 )
 from .compose import compose_prompt, list_models
@@ -33,7 +34,13 @@ def main(argv=None):
     p_apply = sub.add_parser("apply", help="Apply a hashline patch")
     p_apply.add_argument("--patch-file", "-p")
     p_apply.add_argument("--dry-run", action="store_true")
-    p_apply.set_defaults(func=cmd_apply)
+    p_apply.add_argument(
+        "--no-strict",
+        dest="strict",
+        action="store_false",
+        help="Apply valid hunks and warn (instead of rejecting) on malformed patch lines",
+    )
+    p_apply.set_defaults(func=cmd_apply, strict=True)
 
     p_tag = sub.add_parser("tag", help="Print current 4-hex content tag")
     p_tag.add_argument("path")
@@ -63,7 +70,14 @@ def cmd_apply(args):
         sys.exit(2)
 
     store = InMemorySnapshotStore()
-    res = apply_patch(patch_text, store=store, dry_run=args.dry_run)
+    try:
+        res = apply_patch(patch_text, store=store, dry_run=args.dry_run, strict=args.strict)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
+
+    for w in res.warnings:
+        print(f"warning: {w}", file=sys.stderr)
 
     for sec in res.sections:
         print(sec)
@@ -71,9 +85,12 @@ def cmd_apply(args):
     if args.dry_run:
         print("(dry-run)")
 
+    if any(s.get("op") in ("stale", "error") for s in res.sections):
+        sys.exit(1)
+
 
 def cmd_tag(args):
-    raw = Path(args.path).read_text(encoding="utf-8", errors="replace")
+    raw = read_raw(Path(args.path))
     print(compute_tag(raw))
 
 

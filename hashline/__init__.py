@@ -6,6 +6,8 @@ See README.md for usage and prompts/agent_prompts.md for model-specific guidance
 from .hashline import (  # noqa: F401
     compute_tag,
     normalize_text,
+    read_raw,
+    write_raw,
     SnapshotStore,
     InMemorySnapshotStore,
     read_hashed,
@@ -18,6 +20,8 @@ from .compose import compose_prompt, list_models  # noqa: F401
 __all__ = [
     "compute_tag",
     "normalize_text",
+    "read_raw",
+    "write_raw",
     "SnapshotStore",
     "InMemorySnapshotStore",
     "read_hashed",
