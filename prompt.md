@@ -21,3 +21,5 @@ Rules:
 - Stale tag? Re-read immediately
 
 For best results with a specific model, prepend the content from `prompts/<model>.md`.
+
+**See `prompts/agent_prompts.md` for a compact usage matrix** showing the *minimal* deltas for DeepSeek v4, Gemini, and Kimi k2 2.7, plus ready-to-copy full prompts and guidance on separate files vs. templated approach.
