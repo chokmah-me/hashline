@@ -1,4 +1,4 @@
-"""Core hashline implementation - full working version."""
+"""Core hashline implementation (complete working version)."""
 
 from __future__ import annotations
 
@@ -58,9 +58,7 @@ class InMemorySnapshotStore(SnapshotStore):
 
     def get(self, path: str, tag: str) -> Optional[str]:
         key = str(Path(path).resolve())
-        return (self._store.get((key, tag)) or
-                self._store.get((Path(path).name, tag)) or
-                self._store.get((path, tag)))
+        return self._store.get((key, tag)) or self._store.get((Path(path).name, tag)) or self._store.get((path, tag))
 
 
 _global_store = InMemorySnapshotStore()
@@ -138,7 +136,7 @@ def parse(patch_text: str) -> Patch:
             continue
 
         m = _HUNK_RE.match(line.strip())
-        if m and current_file:
+        if m and current_file is not None:
             op = m.group(1)
             rest = m.group(2).strip()
             if op == "DEL":
@@ -219,7 +217,7 @@ class Patcher:
                 elif h.op == "INS.HEAD":
                     ops.append(("ins_head", 1, 0, list(h.body)))
                 elif h.op == "INS.TAIL":
-                    ops.append(("ins_tail", len(orig_lines)+1, len(orig_lines), list(h.body)))
+                    ops.append(("ins_tail", len(orig_lines) + 1, len(orig_lines), list(h.body)))
                 elif h.op == "INS.PRE" and h.start:
                     ops.append(("ins_pre", h.start, h.start, list(h.body)))
                 elif h.op == "INS.POST" and h.start:
