@@ -1,7 +1,19 @@
-Your patch language uses stable line anchors from the last read.
+## Hashline Patch Format (works with DeepSeek v4, Gemini, Kimi k2, Grok, Claude)
 
-[PATH#TAG]
+Every file section starts with [PATH#TAG].
+
 SWAP N.=M:
-+new content
++ replacement lines
 
-See full rules in the original implementation. This format has been verified to work well with DeepSeek v4, Gemini, Kimi k2, Grok, and Claude.
+DEL N
+
+INS.POST N:
++ inserted line
+
+Rules:
+- Use numbers exactly as returned by the most recent `hashline read`.
+- Never output old content in the body — the range handles deletion.
+- Re-ground (re-read) after every apply.
+- Tight ranges only.
+
+This format dramatically reduces failures on DeepSeek v4, Gemini, and Kimi k2 2.7 compared to raw str_replace.
