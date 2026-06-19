@@ -29,8 +29,10 @@ def run_scenario(name: str, source: str, patch_text: str) -> bool:
         p = Path(td) / "sample.py"
         p.write_text(source, encoding="utf-8")
 
-        # 1. Read (what the agent would do)
-        view = read_hashed(p)
+        # 1. Read (what the agent would do). Share a store with apply below so the
+        #    snapshot is available, and read with this scenario's actual file.
+        store = InMemorySnapshotStore()
+        view = read_hashed(p, store=store)
         print("READ VIEW (first 8 lines):")
         print("\n".join(view.splitlines()[:8]))
 
@@ -38,12 +40,14 @@ def run_scenario(name: str, source: str, patch_text: str) -> bool:
         tag = view.split("#", 1)[1].split("\n", 1)[0].split("]", 1)[0]
         print(f"TAG: {tag}")
 
-        # 2. Model-style patch (what an LLM would emit after seeing the view)
+        # 2. Model-style patch (what an LLM would emit after seeing the view).
+        #    Point the bare "sample.py" header at this scenario's real temp file so
+        #    the patch resolves to it rather than the current working directory.
+        patch_text = patch_text.replace("[sample.py#", f"[{p.as_posix()}#")
         print("\nMODEL PATCH:")
         print(patch_text)
 
         # 3. Apply
-        store = InMemorySnapshotStore()
         try:
             res = apply_patch(patch_text, store=store)
             print("\nAPPLY RESULT:", res.sections)
