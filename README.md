@@ -39,11 +39,25 @@ See the `prompts/` directory for ready-to-use variants:
 
 Copy the relevant one into your system prompt or agent instructions.
 
+## Grok Skill Example Usage
+
+When using via the Grok Build TUI, the `hashline` skill (available at `~/.grok/skills/hashline/`) provides detailed examples including:
+
+- Full sample read output
+- How to reason with anchors
+- Complete `hashline apply` patches
+- How to load model variants for DeepSeek/Gemini/Kimi
+
+The skill contains ready-to-paste patterns the model should follow.
+
 ## GitHub Actions / CI
 
-- Tests run automatically on push and pull requests (see `.github/workflows/ci.yml`).
-- Matrix: Python 3.8 – 3.13
-- Also verifies the `hashline` CLI entry point.
+Separate jobs on every push/PR:
+- `test`: pytest across Python 3.8-3.13 + CLI check
+- `lint`: ruff check + format
+- `typecheck`: mypy
+
+See `.github/workflows/ci.yml`.
 
 ## For Claude Code Users
 
@@ -55,6 +69,12 @@ python -m hashline.inject_claude .
 
 ```bash
 git clone https://github.com/chokmah-me/hashline
-pip install -e ".[test]"
+pip install -e ".[dev]"
+# lint
+ruff check .
+ruff format --check .
+# typecheck
+mypy hashline
+# test
 pytest
 ```
