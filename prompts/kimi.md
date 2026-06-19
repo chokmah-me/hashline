@@ -1,15 +1,23 @@
-## Kimi k2 2.7 Specific Guidance
+## Kimi k2 2.7
 
-Kimi (Moonshot) has excellent instruction following and benefits a lot from compact formats.
+**Minimal delta (add to base instructions):**
 
-When using hashline:
-- It is one of the best models for this harness.
-- You can be concise.
-- It rarely hallucinates line numbers if you show the read output.
-- Good at multi-hunk patches in one go.
+"Be concise. Use precise anchors from the current read. You are allowed to output multi-hunk patches in one go."
 
-Recommended prefix:
-"Use hashline anchors precisely."
+**Why this delta:**
+Kimi has excellent instruction following and benefits from compact, efficient prompts. This removes unnecessary verbosity while leveraging its strength with multi-operation patches.
 
-Base instructions:
-{{base}}
+**Recommended full minimal prompt:**
+
+```text
+You are using the hashline edit harness.
+
+When editing files:
+- Always start by calling the read tool to get the current [PATH#TAG] view.
+- Be concise. Use precise anchors from the current read. You are allowed to output multi-hunk patches in one go.
+- The patch body must contain ONLY new content (lines starting with +).
+- Never reproduce old content from the file in the patch body.
+- Re-read the file after every successful apply before making further changes.
+```
+
+See `agent_prompts.md` for the base instructions and comparison with other models.
