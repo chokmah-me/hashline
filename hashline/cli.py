@@ -6,6 +6,7 @@ Usage:
   hashline read path/to/file.py
   hashline apply < patch.txt
   hashline tag path/to/file.py
+  hashline compose --model gemini
 """
 
 import argparse
@@ -18,6 +19,7 @@ from .hashline import (
     read_hashed,
     InMemorySnapshotStore,
 )
+from .compose import compose_prompt, list_models
 
 
 def main(argv=None):
@@ -36,6 +38,10 @@ def main(argv=None):
     p_tag = sub.add_parser("tag", help="Print current 4-hex content tag")
     p_tag.add_argument("path")
     p_tag.set_defaults(func=cmd_tag)
+
+    p_compose = sub.add_parser("compose", help="Compose system prompt from base + model delta")
+    p_compose.add_argument("--model", required=True, choices=list_models(), help="Target model")
+    p_compose.set_defaults(func=cmd_compose)
 
     args = parser.parse_args(argv)
     args.func(args)
@@ -69,6 +75,12 @@ def cmd_apply(args):
 def cmd_tag(args):
     raw = Path(args.path).read_text(encoding="utf-8", errors="replace")
     print(compute_tag(raw))
+
+
+def cmd_compose(args):
+    prompt = compose_prompt(args.model)
+    print(prompt)
+    print("\n# Copy the above into your system prompt for", args.model)
 
 
 if __name__ == "__main__":
