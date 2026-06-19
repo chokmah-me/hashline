@@ -13,6 +13,7 @@ authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
 
 [project.optional-dependencies]
 test = ["pytest"]
+dev = ["ruff", "mypy"]
 
 [project.scripts]
 hashline = "hashline.cli:main"
