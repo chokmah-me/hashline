@@ -11,6 +11,9 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [{name = "Based on work by Can Bölük, extracted and extended"}]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.scripts]
 hashline = "hashline.cli:main"
 
