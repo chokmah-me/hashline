@@ -1,4 +1,4 @@
- # hashline
+# hashline
 
 **Hash-anchored edit harness for LLM coding agents.**
 
@@ -30,11 +30,14 @@ hashline compose --model gemini
 ## Compose Prompts for Different Models
 
 ```bash
-# From installed package
+# CLI (after install)
 hashline compose --model kimi
 
+# Programmatic
+python -c "from hashline import compose_prompt; print(compose_prompt('deepseek'))"
+
 # From source
-python scripts/compose_prompt.py --model deepseek
+python scripts/compose_prompt.py --model gemini
 ```
 
 See `prompts/agent_prompts.md` for the full usage matrix with minimal deltas.
