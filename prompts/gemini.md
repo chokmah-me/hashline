@@ -1,16 +1,23 @@
-## Gemini Specific Guidance
+## Gemini
 
-Gemini can be sensitive to exact formatting and sometimes tries to reproduce old text.
+**Minimal delta (add to base instructions):**
 
-When using hashline:
-- Strong reminder: "Do NOT include any original/old lines in your patch body. The range (SWAP/DEL) handles removal. Only provide new content after the + ."
-- Be explicit about whitespace preservation.
-- Gemini sometimes benefits from an extra example in the prompt.
-- If it fails to find anchors, re-issue a fresh `hashline read` in the same turn.
+"CRITICAL: Never include any original/old lines in your + body. Only write the final desired content. The range (SWAP/DEL) removes the old text."
 
-Recommended:
-Add this to system prompt:
-"You must use the hashline format exactly. Reproduce no old content."
+**Why this delta:**
+Gemini can be sensitive to exact formatting and frequently tries to reproduce old content or context when generating edits.
 
-Base instructions:
-{{base}}
+**Recommended full minimal prompt:**
+
+```text
+You are using the hashline edit harness.
+
+When editing files:
+- Always start by calling the read tool to get the current [PATH#TAG] view.
+- CRITICAL: Never include any original/old lines in your + body. Only write the final desired content. The range (SWAP/DEL) removes the old text.
+- Be explicit about whitespace and indentation.
+- Output patches in the exact hashline format.
+- Re-read the file after every successful apply before making further changes.
+```
+
+See `agent_prompts.md` for the base instructions and comparison with other models.
