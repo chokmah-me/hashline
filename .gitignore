@@ -1,2 +1,17 @@
-CLAUDE.md.bak
+# Python build/runtime artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# hashline backups
 *.hashlinebak
+
+# Local/editor
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

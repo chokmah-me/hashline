@@ -1,5 +1,0 @@
-docs
-hashline
-prompts
-scripts
-tests
