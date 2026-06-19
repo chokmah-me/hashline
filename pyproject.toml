@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hashline"
+version = "0.1.0"
+description = "Hash-anchored edit harness for LLM coding agents (Grok, Claude Code, etc.)"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+  {name = "Extracted for standalone use"}
+]
+dependencies = []
+
+[project.scripts]
+hashline = "hashline.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/chokmah-me/hashline"
+Repository = "https://github.com/chokmah-me/hashline"
+
+[tool.setuptools.packages.find]
+where = ["."]
