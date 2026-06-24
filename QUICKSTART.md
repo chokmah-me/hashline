@@ -175,7 +175,87 @@ single `[path#TAG]` block).
 
 ---
 
-## 6. Programmatic use (build your own harness)
+## 6. Enforce hashline in your agent harness (Claude Code)
+
+A coding agent falls back to its **native edit tool** unless the harness stops
+it. In Claude Code you can require hashline with a **`PreToolUse` hook** that
+intercepts the built-in `Edit`/`Write` tools and points the model at hashline.
+
+**a. Tell the model the rule** — in `~/.claude/CLAUDE.md` (or a project `CLAUDE.md`):
+
+```markdown
+## Edits
+Use the hashline harness for all file modifications:
+`python -m hashline read <file>`, then `python -m hashline apply` against the
+printed `[path#TAG]`. Re-read after applying.
+```
+
+**b. Add a hook script** at `~/.claude/hooks/enforce-hashline.py`:
+
+```python
+#!/usr/bin/env python3
+"""PreToolUse hook: route file modifications through the hashline harness."""
+import json, os, sys
+
+REMINDER = (
+    "Use the hashline harness for file modifications:\n"
+    "  python -m hashline read <file>        # note the [path#TAG] header\n"
+    "  python -m hashline apply  (build the patch against that TAG, re-read after).\n"
+    "Use Write only for new files."
+)
+
+def ask(reason):
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "ask",      # "deny" = hard block; "ask" = prompt
+        "permissionDecisionReason": reason}}))
+    sys.exit(0)
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        sys.exit(0)                        # never block on a parse error
+    tool = data.get("tool_name", "")
+    ti = data.get("tool_input") or {}
+    if tool in ("Edit", "MultiEdit", "NotebookEdit"):
+        ask(f"{tool}: prefer the hashline harness. {REMINDER}")
+    if tool == "Write":
+        path = ti.get("file_path") or ti.get("notebook_path") or ""
+        if path and os.path.exists(path):
+            ask(f"Write targets an existing file ({path}); that is a modification. {REMINDER}")
+    sys.exit(0)                            # allow new-file Write + all other tools
+
+if __name__ == "__main__":
+    main()
+```
+
+**c. Wire it into `~/.claude/settings.json`** (user-level = every project and session):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [ { "type": "command", "command": "python",
+          "args": ["/ABSOLUTE/PATH/TO/.claude/hooks/enforce-hashline.py"], "timeout": 10 } ] }
+    ]
+  }
+}
+```
+
+Then run `/hooks` (or restart) so Claude Code reloads settings.
+
+**Gotchas**
+
+- **`ask` vs `deny`:** `"ask"` prompts before each edit (soft); `"deny"` blocks outright (hard).
+- **Windows paths:** use forward slashes in the JSON `args` — a literal backslash is an invalid JSON escape. The exec-form `args` array also avoids shell-quoting issues.
+- **Dependencies:** the hook shells out to `python` and hashline; if either is missing it **fails open** (the edit proceeds), so a missing dependency can't block all editing.
+- New-file creation via `Write` is allowed; only edits to existing files are intercepted.
+
+---
+
+## 7. Programmatic use (build your own harness)
 
 ```python
 from hashline import read_hashed, apply_patch, InMemorySnapshotStore
@@ -195,7 +275,7 @@ read. The CLI uses a fresh in-memory store, so a CLI `apply` succeeds via the
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom                    | Cause / fix                                                        |
 |----------------------------|-------------------------------------------------------------------|
@@ -207,7 +287,7 @@ read. The CLI uses a fresh in-memory store, so a CLI `apply` succeeds via the
 
 ---
 
-## 8. Learn more
+## 9. Learn more
 
 - [`README.md`](README.md) — overview and CI details
 - [`prompts/agent_prompts.md`](prompts/agent_prompts.md) — per-model prompt matrix
