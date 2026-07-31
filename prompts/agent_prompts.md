@@ -1,5 +1,10 @@
 ## Hashline Agent Prompt Usage Matrix
 
+> **FROZEN (2026-07-05).** No new per-model variants will be added — new models get
+> `base.md` or nothing, and existing variants are removed as models pass the removal
+> test in [`SUNSET.md`](../SUNSET.md). The deltas below describe model behavior as
+> observed in early–mid 2026; re-validate before trusting them on newer releases.
+
 This document shows the **minimal system-prompt deltas** required to make different models reliably emit valid hashline patches.
 
 ### Base Instructions (recommended for all models)

@@ -25,7 +25,7 @@ DELTAS = {
     "deepseek": "Strictly use ONLY the line numbers and [PATH#TAG] shown in the most recent hashline read. Do not use any numbers from memory or previous turns.",
     "gemini": "CRITICAL: Never include any original/old lines in your + body. Only write the final desired content. The range (SWAP/DEL) removes the old text.",
     "kimi": "Be concise. Use precise anchors from the current read. You are allowed to output multi-hunk patches in one go.",
-    "claude": "Claude works well with hashline. Prefer hashline read/apply over raw string-replace edits. Re-read after every apply to pick up the new TAG.",
+    "claude": "Claude Code with native Edit/Write tools should not use hashline (see SUNSET.md). For bare-API Claude deployments the base contract suffices; re-read after every apply to pick up the new TAG.",
     "grok": "Prefer hashline over raw search_replace. Emitting explicit `hashline read`/`apply` calls in the scrollback is expected.",
 }
 
