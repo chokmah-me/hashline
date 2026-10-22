@@ -1,26 +1,34 @@
 # AGENTS.md — hashline
 
-## What this is
-Line-range edits for LLM coding agents, with a content-hash tag on every read so patches against stale buffers are rejected. Pure Python, no dependencies.
+Line-range edits for LLM coding agents. Every read is tagged with a 4-hex content hash; patches against a stale tag are rejected. Pure Python.
 
-Full agent guidance for this repo lives in `CLAUDE.md`; this file is the cross-tool summary. Read `CLAUDE.md` before substantive work.
+## Commands
 
-## Layout (top level)
-- `CHANGELOG.md`
-- `CLAUDE.md`
-- `QUICKSTART.md`
-- `README.md`
-- `SUNSET.md`
-- `docs`
-- `hashline`
-- `prompt.md`
-- `prompts`
-- `pyproject.toml`
+```powershell
+pip install -e ".[dev,test]"
+pytest
+ruff check .
+ruff format --check .
+mypy hashline
+python tests/harness_demo.py --models base gemini
+
+hashline read path\to\file.py
+hashline apply < my.patch
+hashline compose --model gemini
+```
+
+Python 3.8+. Extra `dev` is ruff/mypy; extra `test` is pytest.
 
 ## Work rules
-- Work from the README first; it is the canonical description of purpose, layout, and any build or verify commands.
-- Do not change verdicts, locked data tables, or published artifacts without the user's explicit word.
-- Keep changes small and receipt-backed: name the commit or artifact a claim rests on.
 
-## Canonical docs
-- `README.md` — purpose, usage, and status.
+- The loop is `read → patch → apply → re-read`. Patch bodies contain only `+` new lines, never reproduced old content.
+- File block header is `[path#TAG]`. Ops: `SWAP a.=b`, `DEL a.=b`, `INS.PRE n`, `INS.POST n`, `INS.HEAD`, `INS.TAIL`.
+- Keep `prompts/*.md`, `docs/SKILL.md`, and `hashline/compose.py` consistent when the patch format changes.
+- Target typing compatible with Python 3.8 (`from __future__ import annotations` as needed).
+
+## Pointers
+
+- `README.md` / `QUICKSTART.md` — usage
+- `CLAUDE.md` — engine layout
+- `docs/SKILL.md` — Grok skill
+- `.github/workflows/ci.yml` — test/lint/typecheck/demo jobs
